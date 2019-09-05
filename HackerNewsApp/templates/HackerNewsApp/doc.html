@@ -1,0 +1,118 @@
+{% extends 'HackerNewsApp/base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+<link rel="stylesheet" href="https://codemirror.net/theme/moxer.css">
+<link rel="stylesheet" href="https://codemirror.net/theme/monokai.css">
+
+<script src="https://codemirror.net/lib/codemirror.js"></script>
+<script src="https://codemirror.net/keymap/sublime.js"></script>
+
+<script src="https://codemirror.net/mode/javascript/javascript.js"></script>
+<script src="https://codemirror.net/mode/python/python.js"></script>
+
+
+<br>
+<div class="container" style="width: 60%;">
+
+  <div class="row">
+    <div class="input-field col s12">
+      <div id="doc-text" ></div>
+    </div>
+  </div>
+
+  <div class="snippet-div">
+  </div>
+
+</div>
+
+<script type="text/javascript">
+
+
+  function fetch_doc()
+  {
+    $.ajax({
+      url: "/fetch-doc/",
+      type: "POST",
+      data: {
+        pk: window.location.pathname.split("/")[2]
+      },
+      success: function(response) {
+        console.log("Success!", response);
+        var text = response["text"];
+        var snippets = response["snippets"];
+        $("#doc-text").html(text);
+        for(var i=0;i<snippets.length;i++)
+        { 
+          add_snippet(snippets[i]["code"], snippets[i]["language"]);
+        }
+        // $(document).on('click', '.copy-btn', function(){
+        //   var id = this.id.split("-")[1] -1;
+        //   console.log(id);
+        //   editor[id].focus();
+        //   $("#snippet-"+(id+1)).select();
+        //   //editor[id].select();
+        //   document.execCommand("copy");
+        // });
+      },
+      error: function(xhr, textstatus, errorthrown) {
+        console.log("Error!");
+      }
+    });
+  }
+
+  fetch_doc();
+
+  var cnt=1;
+  var editor = []
+  function add_snippet(code, language)
+  {
+    var html_string = `<div class="row">
+                          <div id="resize-`+cnt+`" class="input-field col s12">
+                            <textarea disabled id="snippet-`+cnt+`" class="materialize-textarea"></textarea>
+                          </div>
+                        </div>`;
+    $(".snippet-div").append(html_string);
+
+    // $("#resize-"+cnt).draggable({
+    //   cancel: "text",
+    //   start: function (){
+    //     $('#textarea').focus();
+    //   },
+    //   stop: function (){
+    //     $('#textarea').focus();
+    //   } 
+    // }).resizable();
+
+    var mode;
+    if(language=="python")
+    {
+      mode = {name: "python",version: 3,singleLineStringErrors: false};
+    }
+    else if(language=="javascript")
+    {
+      mode = "javascript";
+    }
+    var temp_editor = CodeMirror.fromTextArea(document.getElementById("snippet-"+cnt), {
+      lineNumbers: true,
+      mode: mode,
+      matchBrackets: true,
+      keyMap: "sublime",
+      theme: "monokai"
+    });
+    temp_editor.getDoc().setValue(code);
+    editor.push(temp_editor);
+
+    $('.CodeMirror').resizable({
+      resize: function() {
+        temp_editor.setSize($(this).width(), $(this).height());
+        temp_editor.refresh();
+      }
+    });
+
+    cnt++;
+  }
+
+</script>
+
+{% endblock %}

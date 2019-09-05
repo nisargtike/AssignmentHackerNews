@@ -1,0 +1,160 @@
+{% extends 'HackerNewsApp/base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+<link rel="stylesheet" href="https://codemirror.net/theme/moxer.css">
+<link rel="stylesheet" href="https://codemirror.net/theme/monokai.css">
+
+<script src="https://codemirror.net/lib/codemirror.js"></script>
+<script src="https://codemirror.net/keymap/sublime.js"></script>
+
+<script src="https://codemirror.net/mode/javascript/javascript.js"></script>
+<script src="https://codemirror.net/mode/python/python.js"></script>
+
+
+<br>
+<div class="container" style="width: 60%;">
+
+  <div class="row">
+    <div class="col s12">
+      <a id="submit-doc" class="btn right">Submit</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="input-field col s12">
+      <textarea id="doc-text" class="materialize-textarea" placeholder="Write Something..." ></textarea>
+    </div>
+    <div class="col s12">
+      <a class="btn" id="add-snippet-btn">Add Snippet</a>
+    </div>
+  </div>
+
+  <div class="snippet-div">
+  </div>
+
+</div>
+
+<script type="text/javascript">
+
+
+  function abc()
+  {
+    console("hello");
+  }
+
+  var cnt=1;
+  var editor = []
+  function add_snippet()
+  {
+    var html_string = `<div class="row">
+                          <div class="col s3 offset-s9">
+                            <select id="language-`+cnt+`" class="language-select">
+                              <option value="javascript">JavaScript</option>
+                              <option value="python">Python</option>
+                            </select>
+                          </div>
+                          <div class="input-field col s12">
+                            <textarea id="snippet-`+cnt+`" class="materialize-textarea"></textarea>
+                          </div>
+                        </div>`;
+    $(".snippet-div").append(html_string);
+    $('select').formSelect();
+    var temp_editor = CodeMirror.fromTextArea(document.getElementById("snippet-"+cnt), {
+      lineNumbers: true,
+      mode: "javascript",
+      matchBrackets: true,
+      keyMap: "sublime",
+      theme: "monokai"
+    });
+    editor.push(temp_editor);
+
+    $('.CodeMirror').resizable({
+      resize: function() {
+        temp_editor.setSize($(this).width(), $(this).height());
+        temp_editor.refresh();
+      }
+    });
+
+    cnt++;
+  }
+
+  $(document).on("change", ".language-select", function(){
+      var id = this.id.split("-")[1]-1;
+      console.log("idd", id);
+      if(this.value=="python")
+      {
+        console.log("ehrer");
+        editor[id].setOption("mode", {name: "python",version: 3,singleLineStringErrors: false});
+      }
+      else if(this.value=="javascript")
+      {
+        console.log("adasdasdasd");
+        editor[id].setOption("mode", "javascript");
+      }
+  });
+
+  $("#add-snippet-btn").click(function(){
+    add_snippet();
+  })
+
+  function search(query)
+  {
+    $.ajax({
+        url: "/search/",
+        type: "POST",
+        data: {
+          query: query
+        },
+        success: function(response) {
+          console.log("Success!", response);
+        },
+        error: function(xhr, textstatus, errorthrown) {
+          console.log("Error!");
+        }
+      });
+  }
+
+  $("#query").keyup(function(e){
+    if(e.keyCode==13)
+    {
+      search($("#query").val());
+    }
+  });
+
+  $("#submit-doc").click(function(){
+
+    var text = $("#doc-text").val();
+    var snippets = [];
+    for(var i=0;i<cnt-1;i++)
+    {
+      var temp_dict = {};
+      temp_dict["code"] = editor[i].getValue();
+      temp_dict["language"] = $("#language-"+(i+1)).val();
+      snippets.push(temp_dict);
+    }
+
+    console.log(text)
+    console.log(snippets);
+
+    $.ajax({
+        url: "/submit-doc/",
+        type: "POST",
+        data: {
+          text: text,
+          snippets: JSON.stringify(snippets)
+        },
+        success: function(response) {
+          console.log("Success!", response);
+          window.location.pathname = "/home";
+        },
+        error: function(xhr, textstatus, errorthrown) {
+          console.log("Error!");
+        }
+      });
+
+  });
+
+</script>
+
+{% endblock %}

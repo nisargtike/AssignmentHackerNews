@@ -1,0 +1,113 @@
+{% extends 'HackerNewsApp/base.html' %}
+
+{% block content %}
+
+<br>
+<div class="container" style="width: 85%;">
+  <div class="row">
+    <div class="input-field col s12">
+      <input placeholder="Search..." id="query" type="text" class="validate" style="border:1px solid white;background-color: white;text-indent: 1em;">
+    </div>
+  </div>
+  <div id="hackernews-data-div">
+  </div>
+
+</div>
+
+<script type="text/javascript">
+
+  $("body").css("background-color", "green");
+
+
+  function generate_html(response)
+  {
+    var hackernews_data = response["hackernews_data"];
+    var html_string = "";
+    for(var i=0;i<hackernews_data.length;i++)
+    {
+      var sentiment_icon;
+      var sentiment_color;
+      if(hackernews_data[i]["sentiment"]=="positive")
+      {
+        sentiment_icon = "sentiment_very_satisfied";
+        sentiment_color = "green";
+      }
+      else if(hackernews_data[i]["sentiment"]=="neutral")
+      {
+        sentiment_icon = "sentiment_neutral";
+        sentiment_color = "#fbc02d";
+      }
+      else if(hackernews_data[i]["sentiment"]=="negative")
+      {
+        sentiment_icon = "sentiment_very_dissatisfied";
+        sentiment_color = "red";
+      }
+
+      html_string += `<div class="row">
+<div class="col s12">
+<div class="card white darken-1">
+  <div class="card-content black-text">
+    <p><a target="_blank" href="`+hackernews_data[i]["url"]+`" style="color:black">`+hackernews_data[i]["title"]+`</a>&nbsp;&nbsp;&nbsp;<i title="`+hackernews_data[i]["sentiment_score"].toFixed(2)+`" class="material-icons" style="position:absolute;color:`+sentiment_color+`">`+sentiment_icon+`</i></p>
+    <small>`+hackernews_data[i]["user"]+`</small>
+    <p>`+hackernews_data[i]["upvotes"]+` upvotes</p>
+  </div>
+</div>
+</div>
+</div>`
+    }
+    $("#hackernews-data-div").html(html_string);
+  }
+
+  function fetch_top_articles(query)
+  {
+    $.ajax({
+        url: "/fetch-top-articles/",
+        type: "POST",
+        data: {},
+        success: function(response) {
+          console.log("Success!", response);
+          generate_html(response);
+        },
+        error: function(xhr, textstatus, errorthrown) {
+          console.log("Error!");
+        }
+      });
+  }
+  fetch_top_articles();
+
+
+  function search(query)
+  {
+    if(query.trim()=="")
+    {
+      fetch_top_articles();
+      return;
+    }
+    query = query.trim();
+    $.ajax({
+        url: "/search/",
+        type: "POST",
+        data: {
+          query: query
+        },
+        success: function(response) {
+          console.log("Success!", response);
+          generate_html(response);
+        },
+        error: function(xhr, textstatus, errorthrown) {
+          console.log("Error!");
+        }
+      });
+  }
+
+
+  $("#query").keyup(function(e){
+    if(e.keyCode==13)
+    {
+      search($("#query").val());
+    }
+  });
+
+</script>
+
+{% endblock %}

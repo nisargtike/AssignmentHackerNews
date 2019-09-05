@@ -1,0 +1,9 @@
+[05/Sep/2019 10:44:17] "GET /home/ HTTP/1.1" 200 4339
+[05/Sep/2019 10:44:17] "GET /static/css/style.css HTTP/1.1" 200 1749
+[05/Sep/2019 10:44:17] "GET /static/js/init.js HTTP/1.1" 200 226
+[05/Sep/2019 10:44:17] "GET /static/js/jquery.dataTables.min.js HTTP/1.1" 200 81906
+[05/Sep/2019 10:44:17] "GET /static/js/jquery.js HTTP/1.1" 200 86658
+[05/Sep/2019 10:44:17] "GET /favicon.ico HTTP/1.1" 404 77
+[05/Sep/2019 10:44:18] "POST /fetch-top-articles/ HTTP/1.1" 200 1460
+[05/Sep/2019 10:44:21] "POST /search/ HTTP/1.1" 200 288
+[05/Sep/2019 10:44:24] "POST /fetch-top-articles/ HTTP/1.1" 200 1460
